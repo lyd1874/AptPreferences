@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
@@ -26,11 +27,14 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
+import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
 public class AptMMapProcessor extends AbstractProcessor {
 
     private Elements elementUtils;
+
+//    private Messager messager;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -153,6 +157,74 @@ public class AptMMapProcessor extends AbstractProcessor {
                     globalField = false;
                 }
 
+
+                if (name.startsWith("set")) {
+                    String parameterName = executableElement.getParameters().get(0).getSimpleName().toString();
+                    if (isObject) {
+                        MethodSpec setMethod = MethodSpec.overriding(executableElement)
+                                .addStatement(String.format("mEdit.putString(getRealKey(\"%s\",%b), AptPreferencesManager.getAptParser().serialize(%s)).apply()", fieldName,globalField,parameterName))
+                                .build();
+                        methodSpecs.add(setMethod);
+                        continue;
+                    }
+
+                    MethodSpec setMethod;
+                    if (annotation != null && annotation.commit()) {
+                        if (isDouble) {
+                            setMethod = MethodSpec.overriding(executableElement)
+                                    .addStatement(String.format("mEdit.%s(getRealKey(\"%s\",%b), (float)%s).commit()", modName, fieldName, globalField, parameterName)).build();
+                        } else {
+                            setMethod = MethodSpec.overriding(executableElement)
+                                    .addStatement(String.format("mEdit.%s(getRealKey(\"%s\",%b), %s).commit()", modName, fieldName, globalField, parameterName)).build();
+                        }
+                    } else {
+                        if (isDouble) {
+                            setMethod = MethodSpec.overriding(executableElement)
+                                    .addStatement(String.format("mEdit.%s(getRealKey(\"%s\",%b), (float)%s).apply()", modName, fieldName, globalField, parameterName)).build();
+                        } else {
+                            setMethod = MethodSpec.overriding(executableElement)
+                                    .addStatement(String.format("mEdit.%s(getRealKey(\"%s\",%b), %s).apply()", modName, fieldName, globalField, parameterName)).build();
+                        }
+                    }
+                    methodSpecs.add(setMethod);
+                } else {
+
+
+                    if (isObject) {
+                        TypeName className = ClassName.get(fieldElement.asType());
+                        MethodSpec setMethod = MethodSpec.overriding(executableElement)
+                                .addStatement(String.format("String text = mPreferences.getString(getRealKey(\"%s\",%b), null)", fieldName, globalField))
+                                .addStatement("Object object = null")
+                                .addCode("if (text != null){\n" +
+                                        "   object = AptPreferencesManager.getAptParser().deserialize($T.class,text);\n" +
+                                        "}\n" +
+                                        "if (object != null){\n" +
+                                        "   return ($T) object;\n" +
+                                        "}\n", className, className)
+                                .addStatement(String.format("return super.%s()", executableElement.getSimpleName()))
+                                .build();
+                        methodSpecs.add(setMethod);
+
+
+                        continue;
+                    }
+
+
+                    if (isDouble) {
+                        MethodSpec setMethod = MethodSpec.overriding(executableElement)
+                                .addStatement(String.format("return kv.%s(getRealKey(\"%s\",%b), (float)super.%s())", modName, fieldName, globalField, name))
+                                .build();
+
+                        methodSpecs.add(setMethod);
+                    } else {
+                        MethodSpec setMethod = MethodSpec.overriding(executableElement)
+                                .addStatement(String.format("return kv.%s(getRealKey(\"%s\",%b), super.%s())", modName, fieldName, globalField, name))
+                                .build();
+
+                        methodSpecs.add(setMethod);
+                    }
+                }
+
                 TypeName targetClassName = ClassName.get(getPackageName(typeElement), element.getSimpleName() + "Preferences");
                 MethodSpec getMethodSpec2 = MethodSpec.methodBuilder("get")
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -167,11 +239,32 @@ public class AptMMapProcessor extends AbstractProcessor {
                                 "return sInstance;\n", targetClassName, targetClassName)
                         .build();
 
+
+
+                /** 清除函数 */
+                MethodSpec clearMethodSpec = MethodSpec.methodBuilder("clear")
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(TypeName.VOID)
+                        .addStatement("kv.clear().commit()")
+                        .build();
+
+                /** 获取真正的key值 */
+                MethodSpec getRealKeyMethodSpec = MethodSpec.methodBuilder("getRealKey")
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(String.class)
+                        .addParameter(String.class, "key")
+                        .addParameter(TypeName.BOOLEAN, "global")
+                        .addStatement("return global ? key : AptPreferencesManager.getUserInfo() + key")
+                        .build();
+
                 List<TypeSpec> typeSpecs = getInClassTypeSpec(inClassElements);
+
+                /** 构造函数 */
                 MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
                         .addModifiers(Modifier.PUBLIC)
-                        .addStatement("mPreferences = $T.getContext().getSharedPreferences($S, 0)", ClassName.get("com.thejoyrun.aptpreferences", "AptPreferencesManager"), element.getSimpleName())
-                        .addStatement("mEdit = mPreferences.edit()");
+                        .addStatement("kv = $T.mmkvWithID($S)", ClassName.get("com.tencent.mmkv", "MMKV"), element.getSimpleName());
+
+
                 for (TypeSpec typeSpec : typeSpecs) {
                     constructor.addStatement(String.format("this.set%s(new %s())", typeSpec.name.replace("Preferences", ""), typeSpec.name));
                 }
@@ -184,9 +277,9 @@ public class AptMMapProcessor extends AbstractProcessor {
                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                         .addMethods(methodSpecs)
                         .addMethod(getMethodSpec2)
-//                        .addMethod(constructor.build())
-//                        .addMethod(clearMethodSpec)
-//                        .addMethod(getRealKeyMethodSpec)
+                        .addMethod(constructor.build())  //构造函数
+                        .addMethod(clearMethodSpec)   //清除函数
+                        .addMethod(getRealKeyMethodSpec)  //获取真正的key值
                         .addField(ClassName.get("com.tencent.mmkv", "MMKV"), "kv", Modifier.PRIVATE, Modifier.FINAL)
                         .addField(fieldSpec)
                         .addTypes(typeSpecs)
@@ -206,6 +299,7 @@ public class AptMMapProcessor extends AbstractProcessor {
     }
 
     private List<TypeSpec> getInClassTypeSpec(Set<Element> inClassElements) {
+//        messager.printMessage(Diagnostic.Kind.ERROR,"APT输出 getInClassTypeSpec");
         List<TypeSpec> typeSpecs = new ArrayList<>();
         for (Element element : inClassElements) {
             TypeElement typeElement = elementUtils.getTypeElement(TypeName.get(element.asType()).toString());
@@ -262,7 +356,7 @@ public class AptMMapProcessor extends AbstractProcessor {
                         MethodSpec setMethod;
 
                         String parameterName = executableElement.getParameters().get(0).getSimpleName().toString();
-
+                        System.out.println(" 输出内容--------------- ");
                         if (annotation != null && annotation.commit()) {
                             if (isDouble) {
                                 setMethod = MethodSpec.overriding(executableElement)
@@ -304,13 +398,13 @@ public class AptMMapProcessor extends AbstractProcessor {
 
                         if (isDouble) {
                             MethodSpec setMethod = MethodSpec.overriding(executableElement)
-                                    .addStatement(String.format("return mPreferences.%s(getRealKey(\"%s\",%b), (float)super.%s())", modName, typeElement.getSimpleName() + "." + fieldName, globalField, name))
+                                    .addStatement(String.format("return kv.%s(getRealKey(\"%s\",%b), (float)super.%s())", modName, typeElement.getSimpleName() + "." + fieldName, globalField, name))
                                     .build();
 
                             methodSpecs.add(setMethod);
                         } else {
                             MethodSpec setMethod = MethodSpec.overriding(executableElement)
-                                    .addStatement(String.format("return mPreferences.%s(getRealKey(\"%s\",%b), super.%s())", modName, typeElement.getSimpleName() + "." + fieldName, globalField, name))
+                                    .addStatement(String.format("return kv.%s(getRealKey(\"%s\",%b), super.%s())", modName, typeElement.getSimpleName() + "." + fieldName, globalField, name))
                                     .build();
 
                             methodSpecs.add(setMethod);
@@ -358,6 +452,7 @@ public class AptMMapProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         elementUtils = processingEnv.getElementUtils();
+//        messager = processingEnv.getMessager();
     }
 
     /**
