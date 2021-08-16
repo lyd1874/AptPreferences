@@ -1,6 +1,9 @@
 package com.thejoyrun.aptpreferences;
 
 import android.content.Context;
+import android.util.Log;
+
+import com.tencent.mmkv.MMKV;
 
 public final class AptPreferencesManager {
     private static Context sContext;
@@ -12,6 +15,9 @@ public final class AptPreferencesManager {
     public static void init(Context context, AptParser aptParser) {
         sContext = context;
         sAptParser = aptParser;
+
+        String rootDir = MMKV.initialize(context);
+        Log.e("AptPreferences","MMKV Root Dir："+rootDir);
     }
 
     public static Context getContext() {

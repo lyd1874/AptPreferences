@@ -25,6 +25,7 @@ public class MainActivity extends Activity {
         textView.setText(stringBuilder.toString());
 //        SettingsPreferences2.get()
 
+
 //        settingsPreference.getRun().getVoiceName();
         // 普通类型保存
         settingsPreference.setUseLanguage("zh");
