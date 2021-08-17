@@ -2,6 +2,8 @@ package com.thejoyrun.aptpreferences;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import com.thejoyrun.aptpreferences.preferences.Settings;
@@ -44,6 +46,31 @@ public class MainActivity extends Activity {
         Settings.LoginUser loginUser1 = settingsPreference.getLoginUser();
         boolean openPush = settingsPreference.getPush().isOpenPush();
 
+        TextView tvTestP = (TextView) findViewById(R.id.TestP);
+        TextView tvTestM = (TextView) findViewById(R.id.TestM);
+
+        tvTestP.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long time = System.currentTimeMillis();
+                for (int i = 0;i<10000;i++){
+                    TestPPreferences.get().setName(i+"");
+                    Log.d("lyd","TestP输出: "+TestPPreferences.get().getName());
+                }
+                Log.e("lyd","　TestP "+(System.currentTimeMillis()-time));
+            }
+        });
+        tvTestM.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long time = System.currentTimeMillis();
+                for (int i = 0;i<10000;i++){
+                    TestMPreferences.get().setName(i+"");
+                    Log.d("lyd","TestM输出: "+TestMPreferences.get().getName());
+                }
+                Log.e("lyd","　TestM "+(System.currentTimeMillis()-time));
+            }
+        });
     }
 
 }

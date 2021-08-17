@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface AptPreferences {
-
+    //SharePreferences存在效率偏低问题，建议使用MMAP(@AptMMap)实现数据持久化
 }

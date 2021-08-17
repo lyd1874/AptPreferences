@@ -3,7 +3,7 @@ package com.thejoyrun.aptpreferences;
 /**
  * Created by Wiki on 16/7/15.
  */
-@AptPreferences
+@AptMMap
 public class SettingsInfo {
     private String firstUse;
     private String push;

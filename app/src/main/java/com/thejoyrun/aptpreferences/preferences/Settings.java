@@ -1,14 +1,14 @@
 package com.thejoyrun.aptpreferences.preferences;
 
 import com.thejoyrun.aptpreferences.AptField;
-import com.thejoyrun.aptpreferences.AptPreferences;
+import com.thejoyrun.aptpreferences.AptMMap;
 
 import java.io.Serializable;
 
 /**
  * Created by Wiki on 16/7/15.
  */
-@AptPreferences
+@AptMMap
 public class Settings {
     @AptField(commit = true,global = true)
     private long lastOpenAppTimeMillis;
