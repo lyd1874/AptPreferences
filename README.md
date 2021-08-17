@@ -2,7 +2,7 @@
 
 AptPreferences是基于面向对象设计的快速持久化框架，目的是为了简化SharePreferences的使用，减少代码的编写。可以非常快速地保存基本类型和对象。AptPreferences是基于APT技术实现，在编译期间实现代码的生成，支持混淆。根据不同的用户区分持久化信息。
 
-当前项目在AptPreferences项目的基础上，保持原有框架和使用方法不变，添加MMKV的实现。
+### 当前项目在AptPreferences项目的基础上，保持原有框架和使用方法不变，添加MMKV的实现。
 
 ### 特点
 1. 把通过的Javabean变成SharedPreferences操作类
