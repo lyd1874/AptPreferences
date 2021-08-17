@@ -24,9 +24,10 @@ dependencies {
     testCompile 'junit:junit:4.12'
     implementation 'com.alibaba:fastjson:1.1.45.android'
 
-    implementation project(':aptpreferences')
-    annotationProcessor project(':aptpreferences-compiler')
+//    implementation project(':aptpreferences')
+//    annotationProcessor project(':aptpreferences-compiler')
 
-//    implementation 'com.github.lyd1874.AptPreferences:aptpreferences:1.0.0'
-//    annotationProcessor 'com.github.lyd1874:AptPreferences:aptpreferences-compiler:1.0.0'
+    implementation 'com.github.lyd1874.AptPreferences:aptpreferences:1.0.1'
+//    implementation 'com.github.lyd1874.AptPreferences:aptpreferences-annotation:1.0.1'
+    annotationProcessor 'com.github.lyd1874.AptPreferences:aptpreferences-compiler:1.0.1'
 }
