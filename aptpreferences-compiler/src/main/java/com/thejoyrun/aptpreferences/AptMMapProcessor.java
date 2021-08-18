@@ -193,7 +193,7 @@ public class AptMMapProcessor extends AbstractProcessor {
                                 .addStatement(String.format("String text = kv.getString(getRealKey(\"%s\",%b), null)", fieldName, globalField))
                                 .addStatement("Object object = null")
                                 .addCode("if (text != null){\n" +
-                                        "   object = AptPreferencesManager.getAptParser().deserialize($T.class,text);\n" +
+                                        "   object = AptPreferencesManager.getAptParser().deserialize(new TypeReference<$T>(){}.getType(),text);\n" +
                                         "}\n" +
                                         "if (object != null){\n" +
                                         "   return ($T) object;\n" +

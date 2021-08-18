@@ -1,11 +1,16 @@
 package com.thejoyrun.aptpreferences;
 
-@AptMMap
 public class UserInfo {
 
     private String userName;
 
     private int age;
+
+    public UserInfo(){}
+
+    public UserInfo(String userName) {
+        this.userName = userName;
+    }
 
     public String getUserName() {
         return userName;

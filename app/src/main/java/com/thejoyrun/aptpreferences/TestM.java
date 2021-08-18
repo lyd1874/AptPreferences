@@ -1,40 +1,38 @@
 package com.thejoyrun.aptpreferences;
 
 
+import android.util.Log;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+
+import java.util.ArrayList;
+
 @AptMMap
 public class TestM {
 
-    @AptField(save = false)
-    private String name;
+    private UserInfo userInfo;
 
-    @AptField(preferences = false)
-    private TestUser testUser;
+    private ArrayList<UserInfo> list;
 
-    public String getName() {
-        return name;
+    public UserInfo getUserInfo() {
+        return userInfo;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUserInfo(UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
-    public TestUser getTestUser() {
-        return testUser;
+    public ArrayList<UserInfo> getList() {
+        return list;
     }
 
-    public void setTestUser(TestUser user) {
-        this.testUser = user;
+    public void setList(ArrayList<UserInfo> list) {
+        this.list = list;
     }
 
-    static class TestUser{
-        private int age;
-
-        public int getAge() {
-            return age;
-        }
-
-        public void setAge(int age) {
-            this.age = age;
-        }
+    public ArrayList<UserInfo> changeList(String str){
+        Log.e("lyd","　changeList　"+str);
+        return (ArrayList<UserInfo>) JSONObject.parseArray(str,UserInfo.class);
     }
 }
