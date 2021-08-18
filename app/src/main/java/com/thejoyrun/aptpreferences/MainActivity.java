@@ -6,13 +6,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.thejoyrun.aptpreferences.preferences.Settings;
 //import com.thejoyrun.aptpreferences.preferences.SettingsPreferences;
-import com.thejoyrun.aptpreferences.preferences.TestMP;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 public class MainActivity extends Activity {
 

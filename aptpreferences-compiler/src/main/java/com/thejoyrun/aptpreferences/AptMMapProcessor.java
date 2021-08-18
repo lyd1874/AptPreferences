@@ -188,16 +188,17 @@ public class AptMMapProcessor extends AbstractProcessor {
                 } else {
 
                     if (isObject) {
+                        TypeName typeReference = ClassName.get("com.thejoyrun.aptpreferences", "TypeReference");
                         TypeName className = ClassName.get(fieldElement.asType());
                         MethodSpec setMethod = MethodSpec.overriding(executableElement)
                                 .addStatement(String.format("String text = kv.getString(getRealKey(\"%s\",%b), null)", fieldName, globalField))
                                 .addStatement("Object object = null")
                                 .addCode("if (text != null){\n" +
-                                        "   object = AptPreferencesManager.getAptParser().deserialize(new TypeReference<$T>(){}.getType(),text);\n" +
+                                        "   object = AptPreferencesManager.getAptParser().deserialize(new $T<$T>(){}.getType(),text);\n" +
                                         "}\n" +
                                         "if (object != null){\n" +
                                         "   return ($T) object;\n" +
-                                        "}\n", className, className)
+                                        "}\n", typeReference, className, className)
                                 .addStatement(String.format("return super.%s()", executableElement.getSimpleName()))
                                 .build();
                         methodSpecs.add(setMethod);
@@ -251,7 +252,7 @@ public class AptMMapProcessor extends AbstractProcessor {
                     .returns(String.class)
                     .addParameter(String.class, "key")
                     .addParameter(TypeName.BOOLEAN, "global")
-                    .addStatement("return global ? key : $T.getUserInfo() + key",ClassName.get("com.thejoyrun.aptpreferences", "AptPreferencesManager"))
+                    .addStatement("return global ? key : $T.getUserInfo() + key", ClassName.get("com.thejoyrun.aptpreferences", "AptPreferencesManager"))
                     .build();
 
             List<TypeSpec> typeSpecs = getInClassTypeSpec(inClassElements);
