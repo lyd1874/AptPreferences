@@ -6,7 +6,7 @@ AptPreferences是基于面向对象设计的快速持久化框架，目的是为
 ### 修改对象保存方式，使类可以直接保存List等泛型对象
 
 ```
-//FastJson实现对象转String
+//新版本中FastJson实现对象转String
  @Override
  public Object deserialize(Type type, String text) {
     if(type.toString().contains("List")){
