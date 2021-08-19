@@ -3,6 +3,24 @@
 AptPreferences是基于面向对象设计的快速持久化框架，目的是为了简化SharePreferences的使用，减少代码的编写。可以非常快速地保存基本类型和对象。AptPreferences是基于APT技术实现，在编译期间实现代码的生成，支持混淆。根据不同的用户区分持久化信息。
 
 ### 当前项目在AptPreferences项目的基础上，保持原有框架和使用方法不变，添加MMKV的实现。
+### 修改对象保存方式，使类可以直接保存List等泛型对象
+
+```
+//FastJson实现对象转String
+ @Override
+            public Object deserialize(Type type, String text) {
+                if(type.toString().contains("List")){
+                    try {
+                        Class clazz = Class.forName("com.thejoyrun.aptpreferences.UserInfo");
+                        return JSON.parseArray(text,clazz);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }else {
+                    return JSON.parseObject(text,type);
+                }
+            }
 
 ### 特点
 1. 把通过的Javabean变成SharedPreferences操作类
